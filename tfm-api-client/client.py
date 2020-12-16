@@ -11,7 +11,7 @@ class APIClient:
     def headers(self):
 
         headers = {
-            "Host": "tfm_api.asmodee.net",
+            "Host": "tfm-api-client.asmodee.net",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "sv-SE,sv;q=0.8,en-US;q=0.5,en;q=0.3",
