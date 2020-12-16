@@ -3,20 +3,20 @@
 ## Installation
 
 ```
-pip install tfm-api-client
+pip install tfm-client
 ```
 
 ## Usage
 
 ```python 
-from tfm_api_client import APIClient
+from tfm_client import APIClient
 
-bearer_token = "Bearer token from asmodee web page"
+bearer = "Bearer TOKEN from asmoodee"
 
-client = APIClient(bearer_token)
+api_client = APIClient(bearer)
 
-player_id = 1111111
+player_id = 111111
 
-games = client.get_player_games(player_id)
+games = api_client.get_player_games(player_id)
 
 ```
