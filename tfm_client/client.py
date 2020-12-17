@@ -6,6 +6,7 @@ class APIClient:
 
     def __init__(self, bearer_token):
         self.bearer_token = bearer_token
+        self.base_url = "https://api.asmodee.net"
 
     @property
     def headers(self):
@@ -25,76 +26,39 @@ class APIClient:
         }
         return headers
 
-    def fetch_last_games(self, player_id):
-        url = f"https://api.asmodee.net/main/v1/user/{player_id}/lastgames/TerraformingMars"
+    def get_player_games(self, player_id: int):
+        urls = [
+            f"/main/v1/user/{player_id}/lastgames/TerraformingMars?limit=100&status=ended,disconnected&o=0&offset=0",
+            f"/main/v1/user/{player_id}/games/TerraformingMars?limit=100&status=ended,disconnected&o=0&offset=0"
+        ]
 
         player_data = []
 
-        offset = 0
+        for url in urls:
 
-        while True:
+            url = self.base_url + url
 
-            params = {
-                "limit": 100,
-                "status": "ended,disconnected",
-                "o": 0,
-                "offset": offset,
-            }
-
-            data = requests.get(url, headers=self.headers, params=params).json()
-
-            offset += 100
-
-            if not data["data"]["games"]:
-                break
-
-            player_data = player_data + data['data']['games']
-
-            time.sleep(2)
-
-        return player_data
-
-    def fetch_games(self, player_id):
-        url = f"https://api.asmodee.net/main/v1/user/{player_id}/games/TerraformingMars"
-
-        player_data = []
-
-        years = range(2017, 2021)
-
-        for year in years:
-            offset = 0
             while True:
 
-                params = {
-                    "limit": 100,
-                    "status": "ended,disconnected",
-                    "o": 0,
-                    "offset": offset,
-                    "y": year
-                }
-
-                data = requests.get(url, headers=self.headers, params=params).json()
-
-                offset += 100
-
-                if not data["data"]["games"]:
-                    break
+                data = requests.get(url, headers=self.headers).json()
 
                 player_data = player_data + data['data']['games']
+
+                if "next" not in data["data"]["_links"]:
+                    break
+
+                url = self.base_url + data["data"]["_links"]["next"].split(".net")[-1]
 
                 time.sleep(2)
 
         return player_data
 
-    def get_player_games(self, player_id):
-        return self.fetch_games(player_id) + self.fetch_last_games(player_id)
-
     def get_player_rank(self, player_id):
-        api_url = f"https://api.asmodee.net/main/v1/user/{player_id}/rank/TerraformingMars"
+        api_url = f"{self.base_url}/main/v1/user/{player_id}/rank/TerraformingMars"
         return requests.get(api_url, headers=self.headers).json()
 
     def get_ranks(self, limit=20, offset=0):
-        api_url = f"https://api.asmodee.net/main/v1/game/TerraformingMars/rank/established"
+        api_url = f"{self.base_url}/main/v1/game/TerraformingMars/rank/established"
 
         params = {
             "offset": offset,
@@ -103,4 +67,22 @@ class APIClient:
 
         return requests.get(api_url, headers=self.headers, params=params).json()
 
+    def get_all_ranks(self):
+        url = f"{self.base_url}/main/v1/game/TerraformingMars/rank/established?limit=100&o=0&offset=0"
 
+        ranks = []
+
+        while True:
+
+            data = requests.get(url, headers=self.headers).json()
+
+            ranks = ranks + data['data']['ranks']
+
+            if "next" not in data["data"]["_links"]:
+                return ranks
+
+            print("Fetching: " + url)
+
+            url = self.base_url + data["data"]["_links"]["next"].split(".net")[-1]
+
+            time.sleep(1)
